@@ -1,0 +1,85 @@
+@model ApplyViewModel
+
+<!DOCTYPE html>
+@{ ViewData["Title"] = "Apply for a job offer"; }
+
+<h4 style="text-align: center;">You're applying for <i>@Model.OfferName</i>.</h4>
+<hr class="my-4">
+
+<form asp-action="Apply" asp-controller="JobOffers" enctype="multipart/form-data">
+    
+    <div class="form-group">
+        <label asp-for="Name" class="control-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label class="control-label">Communication Email</label>
+        <label id="emailTaken" class="text-info"></label>
+        <input asp-for="CommunicationEmail" id="emailInput" class="form-control" />
+        <span asp-validation-for="CommunicationEmail" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Phone" class="control-label"></label>
+        <input asp-for="Phone" class="form-control" />
+        <span asp-validation-for="Phone" class="text-danger"></span>
+    </div>
+    
+    <div class="form-group"><input hidden="hidden" asp-for="@Model.ApplicationId"/></div>
+    <div class="form-group" id="inputId"><input hidden="hidden" asp-for="JobOfferId"/></div>
+    <div class="form-group"><input hidden="hidden" asp-for="CvFile"/></div>
+    
+    <label style="text-align: center; margin: 10px 20px; font-size: medium"><strong>Your CV file</strong></label>
+    <div class="form-group">
+        <input asp-for="RealFile" type="file" class="btn btn-dark"/>
+        <a href="@Model.CvFile" style="color: wheat" class="btn btn-dark">Your current CV</a>
+    </div>
+    @if (@TempData["BadUpload"] != null)
+    {
+        <div class="alert alert-danger">@TempData["BadUpload"]</div>
+    }
+    
+    <div class="form-group">
+        <div class="input-group-prepend">
+            <span class="input-group-text">Tell us about yourself.</span>
+        </div>
+        <textarea  class="form-control" asp-for="Info" aria-label="With textarea"></textarea>
+    </div>
+    <hr class="my-4">
+    <div>
+        <div class="form-group">
+            <input type="submit" value="Apply for position" class="btn btn-dark"/>
+        </div>
+    </div>
+</form>
+
+@section Scripts
+{
+    <script>
+    $('#emailInput').keyup(function() {
+      var formData = new FormData();
+      var email = document.getElementById("emailInput").value;
+      var jobOfferId = document.getElementById("inputId").firstChild.value;
+      formData.append("email", email);
+      formData.append("offerId", jobOfferId);
+      console.log(jobOfferId);
+      
+      $.ajax({
+          type: 'post',
+          url: '/JobOffers/CheckEmail',
+          data: formData,
+          processData: false,
+          contentType: false
+      }).done(function (result) {
+          var emailSpan = document.getElementById("emailTaken");
+          console.log(result);
+          console.log(emailSpan);
+          if (result.status === "success") {
+              emailSpan.innerHTML = "Podany adres e-mail jest wolny";
+          } else {
+              emailSpan.innerHTML = "Podany adres e-mail jest zajęty";
+          }
+      });
+    });
+    </script>
+}

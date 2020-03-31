@@ -1,0 +1,107 @@
+@model ApplyViewModel
+@{ ViewData["Title"] = "Edit Your Application"; }
+
+<h4 style="text-align: center;">Edit your application for <i>@Model.OfferName</i>.</h4>
+<hr class="my-4">
+
+<div class="form-group">
+    <label class="control-label">Communication Email</label>
+    <label id="emailTaken" class="text-info"></label>
+    <input data-bind="value: email" asp-for="CommunicationEmail" id="emailInput" class="form-control" />
+    <label data-bind="text: emailError" class="text-danger"></label>
+</div>
+<div class="form-group">
+    <label asp-for="Phone" class="control-label"></label>
+    <input data-bind="value: phone" asp-for="Phone" id="phoneInput" class="form-control" />
+    <label data-bind="text: phoneError" class="text-danger"></label>
+</div>
+
+<div class="form-group" id="appId"><input hidden="hidden" asp-for="@Model.ApplicationId"/></div>
+<div class="form-group" id="offerId"><input hidden="hidden" asp-for="JobOfferId"/></div>
+
+<label style="text-align: center; margin: 10px 20px; font-size: medium"><strong>Your CV file</strong></label>
+<div class="form-group">
+    <input id="fileInput" name="files" asp-for="RealFile" type="file" class="btn btn-dark"/>
+    <a id="cvLink" href="@Model.CvFile" style="color: wheat" class="btn btn-dark">Your current CV</a>
+</div>
+@if (@TempData["BadUpload"] != null)
+{
+    <div class="alert alert-danger">@TempData["BadUpload"]</div>
+}
+
+<button class="btn btn-dark btn-lg" data-bind="click: saveChanges">Save changes</button>
+
+<hr class="my-4">
+<label data-bind="text: status" class="text-dark text-lg-center btn"></label>
+
+@section Scripts
+{
+    <script type='text/javascript' src='https://knockoutjs.com/downloads/knockout-3.5.1.js'></script>
+    <script>
+    var viewModel;
+    function AppViewModel() {
+        this.email = '@Model.CommunicationEmail';
+        this.phone = '@Model.Phone';
+        this.emailError = ko.observable("");
+        this.phoneError = ko.observable("");
+        this.status = ko.observable("");
+        this.saveChanges = function() {
+            document.getElementById("emailInput").style.backgroundColor="#777";
+            document.getElementById("phoneInput").style.backgroundColor="#777";
+            var offerId = document.getElementById("offerId").firstChild.value;
+            var appId = document.getElementById("appId").firstChild.value;
+            var formData = new FormData();
+            formData.append("email", this.email);
+            formData.append("phone", this.phone);
+            formData.append("appId", appId);
+            formData.append("offerId", offerId);
+            viewModel = this;
+            
+            temp = document.getElementById("fileInput");
+            var file = temp.files[0];
+            formData.append("file",file);
+            
+            $.ajax({
+              type: 'post',
+              url: '/JobOffers/SaveChanges',
+              data: formData,
+              processData: false,
+              contentType: false
+            }).done(function (result) {
+              console.log(result);
+              
+              var emailSpan = document.getElementById("emailTaken");
+              if (result.emailFree) {
+                  emailSpan.innerHTML = "";
+              } else {
+                  emailSpan.innerHTML = "Podany adres e-mail jest zajęty";
+              }
+              if (result.emailValid){
+                  viewModel.emailError("");
+              }else{
+                  viewModel.emailError("E-mail is invalid");
+              }
+              if (result.phoneValid){
+                  viewModel.phoneError("");
+              }else{
+                  viewModel.phoneError("Phone number is invalid");
+              }
+              
+              if (result.success){
+                  viewModel.status("Zmiany zostały poprawnie zapisane!");
+              }else{
+                  viewModel.status("Niektóre pola zostały wypełnione niepoprawnie!");
+              }
+                document.getElementById("emailInput").style.backgroundColor="#fff";
+                document.getElementById("phoneInput").style.backgroundColor="#fff";
+                
+                if (result.uploadedUri != null){
+                    var link = document.getElementById("cvLink");
+                    link.href = result.uploadedUri;
+                }
+            });
+        };
+    }
+    ko.applyBindings(new AppViewModel());
+    </script>
+}

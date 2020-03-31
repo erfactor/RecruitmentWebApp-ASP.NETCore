@@ -1,0 +1,82 @@
+﻿@using Recruitment.Core
+@using Recruitment.Utils
+@model IEnumerable<Recruitment.Core.JobOffer>
+
+@{
+    ViewData["Title"] = "List of job offers";
+}
+
+<h1>List of job offers</h1>
+<input type="submit" id="refresh" value="Refresh number of applications" class="btn btn-primary btn-dark"/>
+
+@if (User.Identity.IsAuthenticated)
+{
+    if (UserTypeManager.StaffData.CheckUserType(User.FindFirst("emails").Value) == UserType.Hr)
+    {
+        <a class="btn btn-dark btn-lg" asp-controller="JobOffers" asp-action="Create">Create New</a>
+    }
+}
+
+<hr/>
+<table class="table" id="JobOffers">
+    <thead>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.JobOfferId)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Name)
+        </th>
+        <th>Link</th>
+        <th>Num of applicants</th>
+    </tr>
+    </thead>
+</table>
+
+@section Scripts
+{
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.css"/>
+    <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.js"></script>
+    
+    <script>
+        $(function() {
+            $.ajax("/api/JobOffers",
+             {method: "get"})
+             .then(function (response) {
+                 console.log(response);
+                  $("#JobOffers").dataTable({
+                      data: response,
+                      columns: 
+                      [
+                          { "data": "jobOfferId", "name":"temp"},
+                          { "data": "name"},
+                          { "data": "jobOfferId", "render": function(data) {
+                              var link = '@Html.ActionLink("Details","Details", new {id=-1})';
+                              link = link.replace('-1', data);
+                              return link;
+                          }},
+                          { "data": "jobOfferId", "render": function(data) {
+                              var numberLabel = '<label id="-1">0</label>';
+                              numberLabel = numberLabel.replace('-1', data);
+                              // console.log(numberLabel);
+                              return numberLabel;
+                          }}
+                      ]
+                  });
+               });
+        });
+        
+        var refreshbutton = document.getElementById('refresh');
+        refreshbutton.onclick = function(){
+            $.ajax("/JobOffers/AppNumber",
+             {method: "get"})
+             .then(function (response)
+              {
+                  console.log(response);
+                  response.forEach(function(item, index) {
+                      document.getElementById(item.Key).innerHTML = item.Value;
+                  })
+              });
+        };
+    </script>
+}

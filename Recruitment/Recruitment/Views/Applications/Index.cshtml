@@ -1,0 +1,83 @@
+@using Recruitment.Core
+@model Recruitment.Core.ApplicationsViewModel
+
+@{
+    ViewData["Title"] = "List of Applications";
+}
+
+@if (@TempData["GoodUpload"] != null)
+{
+    <div class="alert alert-info">@TempData["GoodUpload"]</div>
+}
+
+<h1>List of Applications</h1>
+<label id="user" hidden="hidden">@Model.UserType</label>
+<table class="table" id="Applications">
+    <thead>
+    <tr>
+        <th>Application</th>
+        <th>JobOffer</th>
+        <th>User E-mail</th>
+        <th>User Name</th>
+        @if (Model.UserType != UserType.Admin)
+        {
+            <th>Details</th>
+            <th>State</th>
+        }
+    </tr>
+    </thead>
+</table>
+
+@section Scripts
+{
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.css"/>
+    <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.js"></script>
+
+    <script>
+    var model = @Html.Raw(Json.Serialize(Model.Applications));
+    console.log(model);
+    var columns = 
+    [ 
+      { "data": "applicationId"},
+      { "data": "offerName"},
+      { "data": "communicationEmail"},
+      { "data": "name"} 
+    ];
+    usertype = document.getElementById('user').textContent;
+    if (usertype === "Hr")
+    {
+      var column = { "data": "applicationId", "render": function(data) {
+          var link = '@Html.ActionLink("Evaluate", "Evaluate", new {id = -1})';
+          link = link.replace('-1', data);
+          return link;
+      }};
+      columns.push(column);
+    }
+    else if(usertype === "User")
+    {
+      var column = { "data": "applicationId", "render": function(data) {
+          var link = '@Html.ActionLink("Edit","Edit", "JobOffers", new {id = -1})';
+          link = link.replace('-1', data);
+          return link;
+      }};
+      columns.push(column);
+    }
+    if (usertype === "User" || usertype === "Hr")
+    {
+      var stateColumn = { "data": "state", "render": function(data) {
+          if (data === "Idle")
+              return "In progress";
+          if (data === "Accept")
+              return "Accepted";
+          if (data === "Deny")
+              return "Denied";
+      }};
+      columns.push(stateColumn);
+    }
+        
+      $("#Applications").dataTable({
+          data: model,
+          columns: columns
+      });
+    </script>
+}

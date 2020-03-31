@@ -1,0 +1,17 @@
+﻿@model Recruitment.Core.JobOffer
+
+@{
+    ViewBag.Title = @Model.Name;
+    Layout = "_Layout";
+}
+<link rel="stylesheet" href="css/mycss.css"/>
+
+<h2 style="text-align: center">Job description</h2>
+<div class="jumbotron">
+  <hr class="my-1">
+  <p>@Model.Description</p>
+  <hr class="my-1">
+</div>
+<div style="margin:auto; text-align: center">
+  <a asp-action="Apply" asp-route-id="@Model.JobOfferId" class="btn btn-dark btn-lg" style="text-align:center;color: antiquewhite; width: 200px">Apply</a>
+</div>

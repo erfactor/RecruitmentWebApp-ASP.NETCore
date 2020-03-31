@@ -1,0 +1,72 @@
+@model Recruitment.Core.JobOffer
+
+@{
+    ViewData["Title"] = "Create Job Offer";
+}
+
+<h4>Create Job Offer</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form id="JobOfferUploadForm" asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input id="name" asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <input id="description" asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group"><input hidden="hidden" asp-for="HrEmail"/></div>
+            
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+@section Scripts
+{
+    <script>
+    $(function() {
+      $("#JobOfferUploadForm").submit(function (e){
+          e.preventDefault();
+          
+          var formAction = $(this).attr("action");
+          var formData = new FormData();
+          console.log(formAction);
+  
+          var name = document.getElementById("name").value;
+          var description = document.getElementById("description").value;
+          formData.append("name", name);
+          formData.append("description", description);
+  
+          console.log(name);
+          console.log('doing submit of:'+ name + " :with: " + description);
+          $.ajax({
+              type: 'post',
+              url: formAction,
+              data: formData,
+              processData: false,
+              contentType: false
+          }).done(function (result) {
+              
+              console.log(result);
+              if (result.status === "success") {
+                  document.getElementById("JobOfferUploadForm").style.display="none";
+                  alert("new offer has been created");
+              } else {
+                  alert(result.message);
+              }
+          });
+      });
+    });
+    </script>
+}
